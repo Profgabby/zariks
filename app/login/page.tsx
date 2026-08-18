@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -57,13 +58,23 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7f5] p-6">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border bg-white shadow-lg">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+
+        {/* ZARIKS HEADER */}
         <div className="bg-[#063d28] px-8 py-8 text-white">
-          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-white text-2xl font-black text-[#063d28]">
-            Z
+
+          <div className="mb-5">
+            <Image
+              src="/zariks-logo.png"
+              alt="ZARIKS Logo"
+              width={72}
+              height={72}
+              priority
+              className="h-[72px] w-[72px] rounded-2xl object-cover shadow-sm"
+            />
           </div>
 
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-3xl font-bold tracking-wide">
             ZARIKS
           </h1>
 
@@ -72,6 +83,7 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* LOGIN FORM */}
         <form
           onSubmit={handleLogin}
           className="space-y-5 p-8"
@@ -82,7 +94,7 @@ export default function LoginPage() {
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Access the ZARI financial control system.
+              Access the ZARIKS financial control system.
             </p>
           </div>
 
@@ -100,7 +112,7 @@ export default function LoginPage() {
                 setEmail(event.target.value)
               }
               placeholder="name@company.com"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-[#006b3c]"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#006b3c] focus:ring-1 focus:ring-[#006b3c]"
             />
           </label>
 
@@ -118,12 +130,12 @@ export default function LoginPage() {
                 setPassword(event.target.value)
               }
               placeholder="••••••••"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-[#006b3c]"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#006b3c] focus:ring-1 focus:ring-[#006b3c]"
             />
           </label>
 
           {message && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
               {message}
             </div>
           )}
@@ -131,12 +143,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[#006b3c] px-5 py-3 font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-lg bg-[#006b3c] px-5 py-3 font-semibold text-white transition hover:bg-[#005b33] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "Signing in..."
               : "Sign in"}
           </button>
+
+          <p className="pt-2 text-center text-xs text-gray-400">
+            Secure Fund Transfer & Accountability System
+          </p>
         </form>
       </div>
     </main>
