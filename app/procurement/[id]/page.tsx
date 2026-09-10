@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import ProcurementApprovalControls from "@/components/ProcurementApprovalControls";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 const ngn = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 2 });
@@ -13,6 +14,7 @@ export default async function ProcurementDetail({ params }: { params: Promise<{ 
   if (!request) notFound();
   const { data: items } = await supabase.from("procurement_request_items").select("*").eq("request_id", id).order("line_no");
   const { data: requester } = await supabase.from("profiles").select("full_name").eq("id", request.requested_by).maybeSingle();
+  const { data: viewer } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
 
   return <main className="min-h-screen bg-[#f5f7f5] px-5 py-8 text-[#152019]"><div className="mx-auto max-w-5xl">
     <Link href="/procurement" className="text-sm font-semibold text-[#006b3c] hover:underline">← Requests</Link>
@@ -23,6 +25,7 @@ export default async function ProcurementDetail({ params }: { params: Promise<{ 
         <section><h2 className="text-sm font-bold uppercase tracking-wider text-[#006b3c]">For What? / Purpose</h2><p className="mt-2 text-lg font-semibold">{request.purpose}</p>{request.justification && <p className="mt-2 text-gray-600">{request.justification}</p>}</section>
         <section><h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-[#006b3c]">Items</h2><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-[#f3f0e6]"><tr><th className="p-3 text-left">#</th><th className="p-3 text-left">Item</th><th className="p-3 text-left">Description</th><th className="p-3 text-right">Qty</th><th className="p-3 text-left">Unit</th><th className="p-3 text-right">Unit Cost</th><th className="p-3 text-right">Amount</th></tr></thead><tbody>{(items ?? []).map((x) => <tr key={x.id} className="border-b"><td className="p-3">{x.line_no}</td><td className="p-3 font-semibold">{x.item_name}</td><td className="p-3">{x.description || "—"}</td><td className="p-3 text-right">{x.quantity}</td><td className="p-3">{x.unit || "—"}</td><td className="p-3 text-right">{ngn.format(Number(x.unit_cost))}</td><td className="p-3 text-right font-bold">{ngn.format(Number(x.amount))}</td></tr>)}</tbody></table></div></section>
         <section className="grid gap-4 border-t pt-6 md:grid-cols-3"><Sign label="REQUESTED BY" value={requester?.full_name || "Signed-in requester"} date={request.created_at} /><Sign label="VERIFIED BY" value={request.verified_by ? "Verified" : "Pending"} date={request.verified_at} /><Sign label="APPROVED BY" value={request.approved_by ? "Approved" : "Pending"} date={request.approved_at} /></section>
+        <ProcurementApprovalControls requestId={id} status={request.status} isAdmin={viewer?.role === "admin"} />
       </div>
     </article>
   </div></main>;
