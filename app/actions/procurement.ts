@@ -11,11 +11,14 @@ async function signedIn() {
   if (!user) throw new Error("You must be signed in.");
   const { data: profile } = await supabase.from("profiles").select("id,role,active").eq("id", user.id).single();
   if (!profile || profile.active === false) throw new Error("Your account is not active.");
-  return { supabase, user, profile };
+  const { data: membership } = await supabase.from("procurement_members").select("workflow_role,active").eq("user_id", user.id).single();
+  return { supabase, user, profile, workflowRole: membership?.active ? membership.workflow_role : null };
 }
+function refresh(id: string) { revalidatePath(`/procurement/${id}`); revalidatePath("/procurement"); }
 
 export async function createProcurementRequest(formData: FormData) {
-  const { supabase } = await signedIn();
+  const { supabase, workflowRole } = await signedIn();
+  if (workflowRole !== "requester" && workflowRole !== "final_approver") throw new Error("Only the Requester / Procurement Officer can submit procurement requests.");
   const itemNames = formData.getAll("item_name").map(String);
   const descriptions = formData.getAll("item_description").map(String);
   const quantities = formData.getAll("quantity").map(Number);
@@ -34,19 +37,27 @@ export async function createProcurementRequest(formData: FormData) {
 }
 
 export async function verifyProcurementRequest(formData: FormData) {
-  const { supabase, user, profile } = await signedIn();
-  if (profile.role !== "admin") throw new Error("Only an administrator can verify requests.");
+  const { supabase, user, workflowRole } = await signedIn();
+  if (workflowRole !== "verifier") throw new Error("Only Dibia Emmanuel, the Operations / Admin Reviewer & Verifier, can verify this request.");
   const id = text(formData, "request_id");
   const { error } = await supabase.from("procurement_requests").update({ status: "verified", verified_by: user.id, verified_at: new Date().toISOString(), verification_note: text(formData,"note") || null }).eq("id", id).in("status", ["submitted","under_review"]);
-  if (error) throw new Error(error.message);
-  revalidatePath(`/procurement/${id}`); revalidatePath("/procurement");
+  if (error) throw new Error(error.message); refresh(id);
+}
+
+export async function financeReviewProcurementRequest(formData: FormData) {
+  const { supabase, user, workflowRole } = await signedIn();
+  if (workflowRole !== "finance_officer") throw new Error("Only Sr. Bola Daramola, the Finance Officer, can complete the finance review.");
+  const id = text(formData, "request_id");
+  const { error } = await supabase.from("procurement_requests").update({ status: "finance_reviewed", finance_reviewed_by: user.id, finance_reviewed_at: new Date().toISOString(), finance_review_note: text(formData,"note") || null }).eq("id", id).eq("status", "verified");
+  if (error) throw new Error(error.message); refresh(id);
 }
 
 export async function approveProcurementRequest(formData: FormData) {
-  const { supabase, user, profile } = await signedIn();
-  if (profile.role !== "admin") throw new Error("Only an administrator can approve requests.");
+  const { supabase, user, workflowRole } = await signedIn();
+  if (workflowRole !== "final_approver") throw new Error("Only Gabriel Ayayia, the Final Approver, can give final approval.");
   const id = text(formData, "request_id");
-  const { error } = await supabase.from("procurement_requests").update({ status: "approved", approved_by: user.id, approved_at: new Date().toISOString(), approval_note: text(formData,"note") || null }).eq("id", id).eq("status", "verified");
-  if (error) throw new Error(error.message);
-  revalidatePath(`/procurement/${id}`); revalidatePath("/procurement");
+  const now = new Date().toISOString();
+  const note = text(formData,"note") || null;
+  const { error } = await supabase.from("procurement_requests").update({ status: "approved", final_approved_by: user.id, final_approved_at: now, final_approval_note: note, approved_by: user.id, approved_at: now, approval_note: note }).eq("id", id).eq("status", "finance_reviewed");
+  if (error) throw new Error(error.message); refresh(id);
 }
