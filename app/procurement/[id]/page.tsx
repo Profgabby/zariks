@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 const ngn = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 2 });
 export default async function ProcurementDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params; const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/login");
+  const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect(`/login?next=${encodeURIComponent(`/procurement/${id}`)}`);
   const { data: request } = await supabase.from("procurement_requests").select("*").eq("id", id).single(); if (!request) notFound();
   const { data: items } = await supabase.from("procurement_request_items").select("*").eq("request_id", id).order("line_no");
   const ids = [request.requested_by,request.verified_by,request.finance_reviewed_by,request.final_approved_by].filter(Boolean);
