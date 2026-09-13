@@ -4,13 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
-
-const APPROVED_EMAILS = new Set([
-  "khadoj85@gmail.com",
-  "mediatrixconsultancyservices@gmail.com",
-  "1010defranc@gmail.com",
-  "ayayiagabriel2020@gmail.com",
-]);
+import { isApprovedZariksEmail } from "@/lib/zariks-users";
 
 function safeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
@@ -25,14 +19,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
   const [setupMode, setSetupMode] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
-
-  function approved(cleanEmail: string) {
-    return APPROVED_EMAILS.has(cleanEmail);
-  }
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,7 +33,7 @@ export default function LoginPage() {
       const supabase = createClient();
       const cleanEmail = email.trim().toLowerCase();
 
-      if (!approved(cleanEmail)) {
+      if (!isApprovedZariksEmail(cleanEmail)) {
         setMessage("This email is not authorized for the ZARIKS financial control system.");
         setLoading(false);
         return;
@@ -57,11 +46,9 @@ export default function LoginPage() {
           return;
         }
 
-        const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
-          options: { emailRedirectTo: callbackUrl },
         });
 
         if (signUpError) {
@@ -70,9 +57,24 @@ export default function LoginPage() {
           return;
         }
 
-        await supabase.auth.signOut();
-        setSuccess(true);
-        setMessage("Check your email to verify your account before signing in. Open the ZARIKS verification link in your inbox or spam folder.");
+        if (signUpData.session && signUpData.user) {
+          router.replace(nextPath);
+          router.refresh();
+          return;
+        }
+
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (!loginError && loginData.session && loginData.user) {
+          router.replace(nextPath);
+          router.refresh();
+          return;
+        }
+
+        setMessage("Your account was created. Sign in with the password you just created.");
         setSetupMode(false);
         setPassword("");
         setLoading(false);
@@ -85,25 +87,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        const lower = error.message.toLowerCase();
-        if (lower.includes("email not confirmed") || lower.includes("not confirmed")) {
-          setMessage("Your email has not been verified yet. Use Resend verification email below.");
-        } else {
-          setMessage(error.message);
-        }
+        setMessage(error.message);
         setLoading(false);
         return;
       }
 
       if (!data.user || !data.session) {
         setMessage("Login succeeded but no active session was created.");
-        setLoading(false);
-        return;
-      }
-
-      if (!data.user.email_confirmed_at) {
-        await supabase.auth.signOut();
-        setMessage("Verify your email before entering ZARIKS. Use Resend verification email below.");
         setLoading(false);
         return;
       }
@@ -125,7 +115,7 @@ export default function LoginPage() {
       setMessage("Enter your ZARIKS email address first.");
       return;
     }
-    if (!approved(cleanEmail)) {
+    if (!isApprovedZariksEmail(cleanEmail)) {
       setMessage("This email is not authorized for the ZARIKS financial control system.");
       return;
     }
@@ -145,38 +135,6 @@ export default function LoginPage() {
     setResetLoading(false);
   }
 
-  async function handleResendVerification() {
-    const cleanEmail = email.trim().toLowerCase();
-    setMessage("");
-    setSuccess(false);
-
-    if (!cleanEmail) {
-      setMessage("Enter your ZARIKS email address first.");
-      return;
-    }
-    if (!approved(cleanEmail)) {
-      setMessage("This email is not authorized for the ZARIKS financial control system.");
-      return;
-    }
-
-    setResendLoading(true);
-    const supabase = createClient();
-    const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: cleanEmail,
-      options: { emailRedirectTo: callbackUrl },
-    });
-
-    if (error) {
-      setMessage(error.message);
-    } else {
-      setSuccess(true);
-      setMessage("Verification email sent. Check your inbox and spam folder, then open the ZARIKS verification link.");
-    }
-    setResendLoading(false);
-  }
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7f5] p-6">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
@@ -192,9 +150,7 @@ export default function LoginPage() {
           <div>
             <h2 className="text-2xl font-bold">{setupMode ? "Set up authorized account" : "Sign in"}</h2>
             <p className="mt-1 text-sm text-gray-500">
-              {setupMode
-                ? "Create your password, then verify your email before access is granted."
-                : "Access the ZARIKS financial control system."}
+              {setupMode ? "Only approved ZARIKS personnel can create an account. Choose your password to activate access." : "Access the ZARIKS financial control system."}
             </p>
           </div>
 
@@ -209,20 +165,15 @@ export default function LoginPage() {
           </label>
 
           {!setupMode && (
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-[#006b3c]">
-              <button type="button" onClick={handleForgotPassword} disabled={resetLoading} className="hover:underline disabled:opacity-60">
-                {resetLoading ? "Sending reset link..." : "Forgot password?"}
-              </button>
-              <button type="button" onClick={handleResendVerification} disabled={resendLoading} className="hover:underline disabled:opacity-60">
-                {resendLoading ? "Sending verification..." : "Resend verification email"}
-              </button>
-            </div>
+            <button type="button" onClick={handleForgotPassword} disabled={resetLoading} className="text-sm font-semibold text-[#006b3c] hover:underline disabled:opacity-60">
+              {resetLoading ? "Sending reset link..." : "Forgot password?"}
+            </button>
           )}
 
           {message && <div className={`rounded-lg border p-3 text-sm ${success ? "border-green-100 bg-green-50 text-green-800" : "border-red-100 bg-red-50 text-red-700"}`}>{message}</div>}
 
           <button type="submit" disabled={loading} className="w-full rounded-lg bg-[#006b3c] px-5 py-3 font-semibold text-white transition hover:bg-[#005b33] disabled:cursor-not-allowed disabled:opacity-60">
-            {loading ? "Please wait..." : setupMode ? "Create account & send verification" : "Sign in"}
+            {loading ? "Please wait..." : setupMode ? "Create account & sign in" : "Sign in"}
           </button>
 
           <button type="button" onClick={() => { setSetupMode((v) => !v); setMessage(""); setSuccess(false); setPassword(""); }} className="w-full text-center text-sm font-semibold text-[#006b3c] hover:underline">
