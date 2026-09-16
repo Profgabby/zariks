@@ -9,20 +9,21 @@ export default async function HomePage() {
 
   if (!user) redirect("/login");
 
-  const email = user.email?.toLowerCase() ?? "";
+  const email = user.email?.trim().toLowerCase() ?? "";
   if (!isApprovedZariksEmail(email)) {
-    await supabase.auth.signOut();
     redirect("/login?message=This%20account%20is%20not%20authorized%20for%20ZARIKS.");
   }
 
+  // Membership is role-based and should resolve by the authenticated user ID.
+  // Keep email as a compatibility fallback for the original four accounts.
   const { data: member } = await supabase
     .from("procurement_members")
-    .select("active")
-    .eq("email", email)
+    .select("user_id,email,workflow_role,active")
+    .or(`user_id.eq.${user.id},email.ilike.${email}`)
+    .limit(1)
     .maybeSingle();
 
   if (!member?.active) {
-    await supabase.auth.signOut();
     redirect("/login?message=This%20ZARIKS%20account%20is%20not%20active.");
   }
 
@@ -30,13 +31,11 @@ export default async function HomePage() {
     .from("profiles")
     .select("full_name, role, active")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error) console.error("Profile error:", error);
-
   if (profile?.active === false) {
-    await supabase.auth.signOut();
-    redirect("/login");
+    redirect("/login?message=This%20ZARIKS%20profile%20is%20not%20active.");
   }
 
   return (
@@ -44,7 +43,7 @@ export default async function HomePage() {
       user={{
         email: user.email ?? "",
         fullName: profile?.full_name ?? user.email ?? "ZARIKS User",
-        role: profile?.role ?? "requester",
+        role: member.workflow_role ?? profile?.role ?? "requester",
       }}
     />
   );
