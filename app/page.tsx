@@ -36,6 +36,7 @@ export default async function HomePage() {
         email: user.email ?? "",
         fullName: profile?.full_name ?? member.full_name ?? user.email ?? "ZARIKS User",
         role: member.workflow_role ?? profile?.role ?? "requester",
+        isSuperAdmin: profile?.role === "super_admin",
       }}
     />
   );
