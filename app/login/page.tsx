@@ -62,7 +62,7 @@ export default function LoginPage() {
     const cleanEmail=email.trim().toLowerCase();setMessage("");setSuccess(false);
     if(!cleanEmail){setMessage("Enter your ZARIKS email address first.");return;}
     setResetLoading(true);const supabase=createClient(),nextPath=currentNextPath();
-    const {error}=await supabase.auth.resetPasswordForEmail(cleanEmail,{redirectTo:`${window.location.origin}/auth/update-password?next=${encodeURIComponent(nextPath)}`});
+    const {error}=await supabase.auth.resetPasswordForEmail(cleanEmail,{redirectTo:`${window.location.origin}/auth/recovery?next=${encodeURIComponent(nextPath)}`});
     if(error)setMessage(error.message);else{setSuccess(true);setMessage("If this email has an active ZARIKS Finance account, a secure password-reset link has been sent. Check the inbox and spam folder.");}
     setResetLoading(false);
   }
