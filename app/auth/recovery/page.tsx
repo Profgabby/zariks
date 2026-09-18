@@ -27,7 +27,7 @@ export default function RecoveryPage() {
       finish();
     };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event: string, session) => {
       if (event === "PASSWORD_RECOVERY" && session) completeOnce();
     });
 
