@@ -2,39 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { logout } from "@/app/actions/auth";
 
 function money(amount:number){return new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(amount)}
 
-const temporaryPasswordUsers = new Set([
-  "mediatrixconsultancyservices@gmail.com",
-  "khadoj85@gmail.com",
-  "1010defranc@gmail.com",
-]);
-
 export default function DashboardClient({user}:{user:{email:string;fullName:string;role:string;isSuperAdmin:boolean}}){
- const router = useRouter();
  const awaiting=0,total=0,awaitingCertification=0,certified=0;
- const email = user.email.toLowerCase();
- const [shouldPromptPasswordChange, setShouldPromptPasswordChange] = useState(false);
-
- useEffect(() => {
-  if (!temporaryPasswordUsers.has(email)) return;
-  const key = `zariks-password-changed:${email}`;
-  const alreadyChanged = window.localStorage.getItem(key) === "1";
-  if (!alreadyChanged) {
-    setShouldPromptPasswordChange(true);
-    router.replace(`/auth/update-password?forced=1&next=${encodeURIComponent("/")}`);
-  }
- }, [email, router]);
-
  return <main className="min-h-screen bg-[#f5f7f5] text-[#152019]">
   <header className="bg-[#063d28] text-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-8"><div className="flex items-center gap-4"><Image src="/zariks-logo.png" alt="ZARIKS Logo" width={56} height={56} priority className="h-14 w-14 rounded-xl object-cover shadow-sm"/><div><h1 className="text-xl font-bold tracking-wide">ZARIKS</h1><p className="text-xs text-green-100">Financial Control &amp; Accountability</p></div></div><div className="text-right"><p className="text-sm font-semibold">{user.fullName}</p><p className="text-xs capitalize text-green-100">{user.role.replaceAll("_"," ")}</p></div></div></header>
   <nav className="border-b bg-white"><div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto px-6 py-4 text-sm font-medium md:px-8"><Link href="/" className="whitespace-nowrap font-semibold text-[#006b3c]">Dashboard</Link><Link href="/procurement" className="whitespace-nowrap hover:text-[#006b3c]">Requests</Link><Link href="/payroll" className="whitespace-nowrap font-semibold text-[#006b3c]">Payroll &amp; Schedules</Link><Link href="/transfers" className="whitespace-nowrap hover:text-[#006b3c]">Payments &amp; Transfers</Link><Link href="/transfers" className="whitespace-nowrap hover:text-[#006b3c]">Approvals</Link><Link href="/mediatrix" className="whitespace-nowrap hover:text-[#006b3c]">Mediatrix</Link><Link href="/transfers" className="whitespace-nowrap hover:text-[#006b3c]">Bello Foods</Link><Link href="/transfers" className="whitespace-nowrap hover:text-[#006b3c]">Retirement</Link><Link href="/transfers" className="whitespace-nowrap hover:text-[#006b3c]">Reports</Link>{user.isSuperAdmin && <Link href="/admin/users" className="whitespace-nowrap font-semibold text-[#006b3c]">User Management</Link>}<Link href="/auth/update-password" className="whitespace-nowrap font-semibold text-[#006b3c] hover:underline">Change Password</Link><div className="ml-auto whitespace-nowrap"><form action={logout}><button type="submit" className="font-semibold text-red-700">Sign out</button></form></div></div></nav>
   <section className="mx-auto max-w-7xl px-6 py-8 md:px-8">
-   {shouldPromptPasswordChange && <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 p-5"><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><p className="text-sm font-bold text-amber-900">Temporary password in use</p><p className="mt-1 text-sm text-amber-800">You must change your temporary password before continuing regular work in ZARIKS.</p></div><Link href="/auth/update-password?forced=1&next=/" className="rounded-lg bg-[#006b3c] px-5 py-3 text-center font-bold text-white">Change password now</Link></div></div>}
    <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between"><div><p className="mb-1 text-sm font-semibold uppercase tracking-wider text-[#006b3c]">Financial Control</p><h2 className="text-3xl font-bold">ZARIKS Financial Control Dashboard</h2><p className="mt-2 text-sm text-gray-500">Request, verify, approve, schedule, pay, certify, retire and reconcile ZARIKS funds.</p></div><Link href="/procurement/new" className="inline-flex items-center justify-center rounded-lg bg-[#006b3c] px-6 py-3 font-bold text-white shadow-sm">+ New Financial Request</Link></div>
    <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Requests Awaiting Action" value={String(awaiting)}/><Metric label="Approved / Disbursed Value" value={money(total)}/><Metric label="Payments Awaiting Certification" value={String(awaitingCertification)}/><Metric label="Certified / Closed" value={String(certified)}/></div>
    <div className="mb-8 rounded-xl border-2 border-[#d8c77a] bg-[#fffdf5] p-6 shadow-sm"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><p className="text-xs font-bold uppercase tracking-wider text-[#006b3c]">Start here · Spending authorization</p><h3 className="mt-1 text-xl font-bold">Financial Requests</h3><p className="mt-1 max-w-2xl text-sm text-gray-600">Create procurement, salary, commission, bonus, allowance and other financial requests. Approval authorizes the obligation; payment records the actual movement of money.</p><div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold"><span className="rounded-full bg-green-100 px-3 py-1">1 Request</span><span className="rounded-full bg-green-100 px-3 py-1">2 Verify</span><span className="rounded-full bg-green-100 px-3 py-1">3 Finance Review</span><span className="rounded-full bg-green-100 px-3 py-1">4 Final Approval</span></div></div><div className="flex shrink-0 flex-col gap-2 sm:flex-row"><Link href="/procurement" className="rounded-lg border border-[#006b3c] px-5 py-3 text-center font-bold text-[#006b3c]">View Requests</Link><Link href="/procurement/new" className="rounded-lg bg-[#006b3c] px-5 py-3 text-center font-bold text-white">Create Request</Link></div></div></div>
