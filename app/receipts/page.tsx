@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import ReceiptUploadForm from "@/components/ReceiptUploadForm";
 export default async function ReceiptsPage(){
- const supabase=await createClient();
+ const supabase=await createServerSupabaseClient();
  const {data:{user}}=await supabase.auth.getUser();
  if(!user) redirect("/login?next=/receipts");
  const {data:member}=await supabase.from("procurement_members").select("active").eq("user_id",user.id).maybeSingle();
