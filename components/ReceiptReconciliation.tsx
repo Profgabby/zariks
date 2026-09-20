@@ -2,7 +2,7 @@
 import {useState} from "react";import {createClient} from "@/lib/supabase";
 type O={id:string;request_no:string;approved_amount:number;currency:string;purpose:string;beneficiary:string|null;status:string;disbursed_amount:number;accepted_receipts:number;returned_cash:number};
 type R={id:string;transfer_id:string;approved_obligation_id:string|null;receipt_number:string|null;vendor_name:string;purchase_date:string;amount:number;description:string;file_name:string;storage_path:string;status:string;review_notes:string|null;created_at:string};
-type T={id:string;transaction_no:string;approved_obligation_id:string|null;amount_transferred:number|null};
+type T={id:string;transaction_no:string;description:string;payee_name:string|null;status:string;approved_obligation_id:string|null;amount_transferred:number|null};
 type C={id:string;approved_obligation_id:string;amount:number;reference:string|null;returned_at:string};
 const money=(v:number)=>"₦"+Number(v||0).toLocaleString("en-NG",{minimumFractionDigits:0,maximumFractionDigits:2});
 export default function ReceiptReconciliation({obligations,receipts,returns,transfers,canReview}:{obligations:O[];receipts:R[];returns:C[];transfers:T[];canReview:boolean}){
