@@ -22,6 +22,6 @@ export default async function ReceiptsPage(){
  const canReview=["admin","super_admin","finance"].includes(profile?.role||"");
  return <main className="min-h-screen bg-[#f5f7f5] p-6 text-[#152019]"><div className="mx-auto max-w-7xl space-y-6">
   <div><Link href="/" className="text-sm font-semibold text-[#006b3c]">← Dashboard</Link><h1 className="mt-2 text-3xl font-bold">Receipts & Expenses</h1><p className="mt-1 text-sm text-gray-600">Account for every disbursed naira with accepted evidence or returned cash.</p></div>
-  <ReceiptReconciliation obligations={obligations||[]} receipts={receipts||[]} returns={returns||[]} transfers={transfers||[]} canReview={canReview}/>
+  <ReceiptReconciliation obligations={(obligations || []) as any} receipts={(receipts || []) as any} returns={(returns || []) as any} transfers={(transfers || []) as any} canReview={canReview}/>
   <ReceiptUploadForm transfers={(transfers||[]).map(t=>({...t,supported:supported.get(t.id)||0}))}/>
  </div></main>
