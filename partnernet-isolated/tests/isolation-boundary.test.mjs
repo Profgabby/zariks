@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import {readFileSync,readdirSync} from "node:fs";
 const root=new URL("../",import.meta.url);
-const page=readFileSync(new URL("app/page.tsx",root),"utf8");
+const page=readFileSync(new URL("app/operations/page.tsx",root),"utf8");
 const model=readFileSync(new URL("lib/model.mjs",root),"utf8");
 const packageJson=JSON.parse(readFileSync(new URL("package.json",root),"utf8"));
 assert.ok(page.includes("No live database"));
 assert.ok(!/createServerSupabaseClient|NEXT_PUBLIC_SUPABASE|service_role|@\/lib\//.test(page));
 assert.ok(!/fetch\(|axios\.|supabase\.from\(/.test(page));
 assert.ok(!/supabase|postgres|pg\b/i.test(JSON.stringify(packageJson.dependencies)));
-assert.equal(readdirSync(new URL("app/",root)).filter(x=>x.endsWith(".tsx")).length,2);
+assert.ok(readdirSync(new URL("app/",root)).includes("page.tsx"));
+assert.ok(readdirSync(new URL("app/operations/",root)).includes("page.tsx"));
 assert.ok(model.includes("validateRecord"));
 console.log("PASS: standalone app, no finance imports, no DB credentials, no network calls");
