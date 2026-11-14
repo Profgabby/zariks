@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -p 3100",
     "test": "node tests/isolation.test.mjs && node tests/isolation-boundary.test.mjs && node tests/model.test.mjs",
-    "lint": "eslint app lib"
+    "lint": "eslint app lib",
+    "test:browser": "node tests/browser.test.mjs"
   },
   "dependencies": {
     "next": "15.5.28",
@@ -20,6 +21,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "15.5.28"
+    "eslint-config-next": "15.5.28",
+    "playwright": "1.56.1"
   }
 }
