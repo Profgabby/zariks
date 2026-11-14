@@ -21,3 +21,6 @@ Before enabling database access, verify which Supabase instance the existing fin
 2. Local dashboard renders, navigation works, and mock orders can be added.
 3. No database or external API requests occur in local mode.
 4. No production deployment occurs.
+
+## Preview target
+The independent Vercel project is `zariks-partnernet-preview` with root directory `partnernet-isolated/`. Preview deployments are protected by Vercel Authentication. The original `zariks` Vercel project is not the PartnerNet preview target.
