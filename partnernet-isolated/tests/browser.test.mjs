@@ -4,7 +4,7 @@ import { chromium } from "playwright";
 
 const port = 3100;
 const base = `http://127.0.0.1:${port}`;
-const server = spawn("npm", ["run", "start"], { stdio: "pipe", env: { ...process.env, PORT: String(port) } });
+const server = spawn("npm", ["run", "start"], { stdio: "pipe", detached: true, env: { ...process.env, PORT: String(port) } });
 let output = "";
 server.stdout.on("data", data => { output += data.toString(); });
 server.stderr.on("data", data => { output += data.toString(); });
@@ -22,6 +22,7 @@ try {
   await waitForServer();
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ acceptDownloads: true });
+  page.setDefaultTimeout(10000);
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   await page.goto(base);
@@ -51,5 +52,5 @@ try {
   console.log("PASS: browser navigation, order creation, status, search, CSV download, overview, non-persistence");
 } finally {
   await browser?.close();
-  server.kill("SIGTERM");
+  try { process.kill(-server.pid, "SIGTERM"); } catch { server.kill("SIGTERM"); }
 }
