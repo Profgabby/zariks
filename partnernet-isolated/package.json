@@ -6,17 +6,20 @@
     "dev": "next dev -p 3100",
     "build": "next build",
     "start": "next start -p 3100",
-    "test": "node tests/isolation.test.mjs && node tests/isolation-boundary.test.mjs && node tests/model.test.mjs"
+    "test": "node tests/isolation.test.mjs && node tests/isolation-boundary.test.mjs && node tests/model.test.mjs",
+    "lint": "eslint app lib"
   },
   "dependencies": {
-    "next": "15.5.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "next": "15.5.28",
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.5.28"
   }
 }
