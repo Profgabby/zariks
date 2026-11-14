@@ -86,4 +86,4 @@ const zdPriorRender=render;render=function(){zdPriorRender();if(page==='Executiv
 const zdRendered=render;render=function(){zdRendered();const main=document.getElementById('main');if(!main)return;const walk=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let node;while(node=walk.nextNode()){if(node.parentElement&&['SCRIPT','STYLE','TEXTAREA'].includes(node.parentElement.tagName))continue;node.nodeValue=node.nodeValue.replace(/\billustrative\b/gi,'scenario-based').replace(/\bproposed\b/gi,'unverified').replace(/\bproposals\b/gi,'unverified entries')} };
 
 applyTheme();render();loadGeography();
-</script></body></html>
+</script><a href="/operations" aria-label="Open operational records" style="position:fixed;right:20px;bottom:20px;z-index:9999;background:#FDB515;color:#103b25;padding:13px 18px;border-radius:12px;font-weight:800;box-shadow:0 6px 22px #0003;text-decoration:none">Operational records ↗</a></body></html>
