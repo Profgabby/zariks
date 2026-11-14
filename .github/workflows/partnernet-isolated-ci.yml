@@ -1,0 +1,33 @@
+name: PartnerNet isolated acceptance
+on:
+  push:
+    branches: [feature/zariks-partnernet-integration]
+    paths:
+      - 'partnernet-isolated/**'
+      - '.github/workflows/partnernet-isolated-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-acceptance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: partnernet-isolated
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated dependencies
+        run: npm install --no-audit --no-fund
+      - name: Domain and boundary tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Verify finance application untouched
+        working-directory: .
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -vE '^(partnernet-isolated/|\.github/workflows/partnernet-isolated-ci.yml)' ; then
+            echo 'Unexpected changes outside isolated application'; exit 1
+          fi
