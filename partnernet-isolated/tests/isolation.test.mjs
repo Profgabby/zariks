@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {readFileSync,existsSync} from "node:fs";
-const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const page=readFileSync(new URL("../app/operations/page.tsx",import.meta.url),"utf8");
 assert.ok(page.includes("No live database"));
 assert.ok(page.includes("Executive Overview"));
 assert.ok(!/createClient\(|supabase\.from\(|fetch\(|axios\./.test(page));
