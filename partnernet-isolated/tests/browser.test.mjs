@@ -25,7 +25,17 @@ try {
   page.setDefaultTimeout(10000);
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
-  await page.goto(base);
+  await page.goto(base + "/site/index.html");
+  await page.getByRole("heading", { name: "Welcome to ZARIKS" }).waitFor();
+  const logo = page.locator(".brand img").first();
+  assert.equal(await logo.evaluate(el => el.complete && el.naturalWidth > 0), true, "brand logo loaded");
+  const campaign = page.locator(".hero img").first();
+  assert.equal(await campaign.evaluate(el => el.complete && el.naturalWidth > 0), true, "campaign image loaded");
+  await page.getByRole("link", { name: "About ZARIKS" }).first().click();
+  await page.getByRole("heading", { name: "Rooted in nature. Built for people." }).first().waitFor();
+  await page.goto(base + "/site/partnernet.html");
+  await page.locator("body").waitFor();
+  await page.goto(base + "/operations");
   await page.getByRole("heading", { name: "Executive Overview" }).waitFor();
   await page.getByRole("button", { name: "Orders", exact: true }).click();
   await page.getByRole("heading", { name: "New Orders record" }).waitFor();
