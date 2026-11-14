@@ -23,8 +23,14 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Domain and boundary tests
         run: npm test
+      - name: Lint isolated app
+        run: npm run lint
       - name: Production build
         run: npm run build
+      - name: Install Chromium for browser acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Browser navigation and workflow acceptance
+        run: npm run test:browser
       - name: Verify finance application untouched
         working-directory: .
         run: |
