@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import {authorizePartnerNet} from "../lib/partnernet-access.mjs";
+const identity={id:"verified-user",verified:true};
+const membership={userId:"verified-user",organizationId:"org-a",active:true,permissions:["orders:read"]};
+const check=(overrides={})=>authorizePartnerNet({identity,membership,organizationId:"org-a",action:"orders:read",...overrides});
+assert.equal(check().allowed,true);
+assert.equal(check({identity:null}).allowed,false);
+assert.equal(check({identity:{id:"verified-user",verified:false}}).allowed,false);
+assert.equal(check({membership:null}).allowed,false);
+assert.equal(check({membership:{...membership,active:false}}).allowed,false);
+assert.equal(check({membership:{...membership,userId:"another-user"}}).allowed,false);
+assert.equal(check({organizationId:"org-b"}).allowed,false);
+assert.equal(check({action:"orders:write"}).allowed,false);
+assert.equal(check({action:"admin:manage"}).allowed,false);
+assert.equal(check({membership:{...membership,permissions:["*"]}}).allowed,false);
+assert.equal(check({membership:{...membership,permissions:[]}}).allowed,false);
+console.log("PASS: PartnerNet authorization denies missing identity, inactive membership, cross-org and ungranted actions");
