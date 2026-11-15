@@ -11,4 +11,13 @@ assert.ok(!/supabase|postgres|pg\b/i.test(JSON.stringify(packageJson.dependencie
 assert.ok(readdirSync(new URL("app/",root)).includes("page.tsx"));
 assert.ok(readdirSync(new URL("app/operations/",root)).includes("page.tsx"));
 assert.ok(model.includes("validateRecord"));
+const middleware=readFileSync(new URL("middleware.ts",root),"utf8");
+const workspace=readFileSync(new URL("public/site/partnernet.html",root),"utf8");
+const partnerPage=readFileSync(new URL("app/partners/page.tsx",root),"utf8");
+assert.ok(middleware.includes('"/site/partnernet.html"'),"legacy static workspace must be protected");
+for(const route of ['"/operations"','"/staff"','"/admin"']) assert.ok(middleware.includes(route),"protected route missing: "+route);
+assert.ok(middleware.includes('"/access"'),"protected routes must redirect to the deny-by-default access page");
+assert.ok(!workspace.includes('<select id="role"'),"unauthenticated role-switcher must not return");
+assert.ok(partnerPage.includes('ZARIKS Partner Network'));
+console.log("PASS: protected legacy dashboard, no unauthenticated role switcher, public partner information");
 console.log("PASS: standalone app, no finance imports, no DB credentials, no network calls");
