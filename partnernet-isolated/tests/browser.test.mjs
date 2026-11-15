@@ -33,33 +33,15 @@ try {
   assert.equal(await campaign.evaluate(el => el.complete && el.naturalWidth > 0), true, "campaign image loaded");
   await page.getByRole("link", { name: "About ZARIKS" }).first().click();
   await page.getByRole("heading", { name: "Rooted in nature. Built for people." }).first().waitFor();
-  await page.goto(base + "/site/partnernet.html");
-  await page.locator("body").waitFor();
-  await page.goto(base + "/operations");
-  await page.getByRole("heading", { name: "Executive Overview" }).waitFor();
-  await page.getByRole("button", { name: "Orders", exact: true }).click();
-  await page.getByRole("heading", { name: "New Orders record" }).waitFor();
-  await page.getByLabel("customer", { exact: false }).fill("School A");
-  await page.getByLabel("sku", { exact: false }).fill("ZRK-500");
-  await page.getByLabel("quantity", { exact: false }).fill("25");
-  await page.getByRole("button", { name: "Save local record" }).click();
-  await page.getByText("School A").waitFor();
-  await page.getByLabel("Status for ORD-0001").selectOption("Approved");
-  assert.equal(await page.getByLabel("Status for ORD-0001").inputValue(), "Approved");
-  await page.getByLabel("Search records").fill("no-such-customer");
-  await page.getByText("No matching records.").waitFor();
-  await page.getByLabel("Search records").fill("School A");
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
-  const download = await downloadPromise;
-  assert.equal(download.suggestedFilename(), "zariks-orders.csv");
-  await page.getByRole("button", { name: "Executive Overview" }).click();
-  await page.getByText("Ordered bottles").waitFor();
-  await page.reload();
-  await page.getByRole("button", { name: "Orders", exact: true }).click();
-  await page.getByText("No matching records.").waitFor();
+  await page.goto(base + "/partners");
+  await page.getByRole("heading", { name: "ZARIKS Partner Network" }).waitFor();
+  for (const restricted of ["/operations", "/site/partnernet.html", "/staff", "/admin"]) {
+    await page.goto(base + restricted);
+    await page.getByRole("heading", { name: "Workspace access" }).waitFor();
+    assert.equal(new URL(page.url()).pathname, "/access", restricted + " must be denied");
+  }
   assert.deepEqual(errors, [], "browser console page errors");
-  console.log("PASS: browser navigation, order creation, status, search, CSV download, overview, non-persistence");
+  console.log("PASS: public site, images, partner page and fail-closed protected routes");
 } finally {
   await browser?.close();
   try { process.kill(-server.pid, "SIGTERM"); } catch { server.kill("SIGTERM"); }
